@@ -2,6 +2,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   ActivityIndicator,
   DeviceEventEmitter,
+  FlatList,
   NativeEventEmitter,
   PermissionsAndroid,
   Platform,
@@ -15,6 +16,8 @@ import ItemList from './ItemList';
 import SamplePrint from './SamplePrint';
 import { styles } from './styles';
 
+import RNFS from 'react-native-fs';
+
 const App = () => {
   const [pairedDevices, setPairedDevices] = useState([]);
   const [foundDs, setFoundDs] = useState([]);
@@ -22,6 +25,15 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [boundAddress, setBoundAddress] = useState('');
+  // path downloads folder
+  const [downloadsFolder, setDownloadsFolder] = useState('')
+  // 
+  const [files, setFiles] = useState([])
+
+  const getFileContent = async (path) => {
+    const reader = await RNFS.readDir(path);
+    setFiles(reader);
+  };
 
   useEffect(() => {
     BluetoothManager.isBluetoothEnabled().then(
@@ -64,6 +76,13 @@ const App = () => {
     if (pairedDevices.length < 1) {
       scan();
     }
+
+    // get user's file download path 
+    setDownloadsFolder(RNFS.DownloadDirectoryPath)
+
+    // acces file 
+    getFileContent(RNFS.DownloadDirectoryPath)
+
   }, [boundAddress, deviceAlreadPaired, deviceFoundEvent, pairedDevices, scan]);
 
   const deviceAlreadPaired = useCallback(
@@ -182,27 +201,67 @@ const App = () => {
           buttonPositive: 'Boleh',
         };
 
-        const bluetoothConnectGranted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-          permissions,
-        );
-        if (bluetoothConnectGranted === PermissionsAndroid.RESULTS.GRANTED) {
-          const bluetoothScanGranted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+        const permission12 = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT )
+        const permission11 = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION )
+
+        // permissions for android 12 higher
+        if(permission12 && permission11) {
+          console.log('masuk atas')
+          const bluetoothConnectGranted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
             permissions,
           );
-          if (bluetoothScanGranted === PermissionsAndroid.RESULTS.GRANTED) {
-            scanDevices();
+          if (bluetoothConnectGranted === PermissionsAndroid.RESULTS.GRANTED) {
+            const bluetoothScanGranted = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+              permissions,
+            );
+            if (bluetoothScanGranted === PermissionsAndroid.RESULTS.GRANTED) {
+              scanDevices();
+            }
+          } else {
+            // ignore akses ditolak
           }
-        } else {
-          // ignore akses ditolak
+        } else { 
+          // permissions for android 11 lower
+          console.log('masuk bawah')
+          const bluetoothScanGranted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            permissions,
+          )
+  
+          if(bluetoothScanGranted) {
+            scanDevices()
+          } else {
+            // ignore
+          }
         }
+
       }
       blueTooth();
     } catch (err) {
       console.warn(err);
     }
   }, [scanDevices]);
+
+  const Item = ({ name, isFile }) => {
+    return (
+      <View>
+        <Text style={styles.name}>Name: {name}</Text>
+        <Text> {isFile ? "It is a file" : "It's a folder"}</Text>
+      </View>
+    )
+  }
+
+  const renderItem = ({ item, index }) => {
+    return (
+      <View>
+        <Text style={styles.title}>{index}</Text>
+        {/* The isFile method indicates whether the scanned content is a file or a folder*/}
+        <Item name={item.name} isFile={item.isFile()} />
+      </View>
+    )
+  }
 
   return (
       <ScrollView style={styles.container}>
@@ -243,6 +302,12 @@ const App = () => {
           })}
         </View>
         <SamplePrint />
+        <Text>Downloads folder : {downloadsFolder} {console.log(downloadsFolder)}</Text>
+        <FlatList
+          data={files}
+          renderItem={renderItem}
+          keyExtractor={(item) => item.name}
+        />
         <View style={{height: 100}} />
       </ScrollView>
   );
