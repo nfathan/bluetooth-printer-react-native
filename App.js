@@ -17,6 +17,7 @@ import SamplePrint from './SamplePrint';
 import { styles } from './styles';
 
 import RNFS from 'react-native-fs';
+import { PERMISSIONS, check } from 'react-native-permissions' 
 
 const App = () => {
   const [pairedDevices, setPairedDevices] = useState([]);
@@ -27,13 +28,13 @@ const App = () => {
   const [boundAddress, setBoundAddress] = useState('');
   // path downloads folder
   const [downloadsFolder, setDownloadsFolder] = useState('')
-  // 
-  const [files, setFiles] = useState([])
+  // file in downloads folder
+  // const [files, setFiles] = useState([])
 
-  const getFileContent = async (path) => {
-    const reader = await RNFS.readDir(path);
-    setFiles(reader);
-  };
+  // const getFileContent = async (path) => {
+  //   const reader = await RNFS.readDir(path);
+  //   setFiles(reader);
+  // }
 
   useEffect(() => {
     BluetoothManager.isBluetoothEnabled().then(
@@ -80,8 +81,8 @@ const App = () => {
     // get user's file download path 
     setDownloadsFolder(RNFS.DownloadDirectoryPath)
 
-    // acces file 
-    getFileContent(RNFS.DownloadDirectoryPath)
+    // acces file in downloads folder 
+    // getFileContent(downloadsFolder)
 
   }, [boundAddress, deviceAlreadPaired, deviceFoundEvent, pairedDevices, scan]);
 
@@ -201,11 +202,16 @@ const App = () => {
           buttonPositive: 'Boleh',
         };
 
-        const permission12 = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT )
-        const permission11 = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION )
+        const bluetoothPerm12 = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT )
+        const bluetoothPerm11 = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION )
+        // const storage = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.MANAGE_EXTERNAL_STORAGE )
+        // console.log('masuk bawah'+ storage)
+        // const fileManagementPerm =  await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE )
+        
+        // console.log('izin akses file :' + fileManagementPerrm)
 
         // permissions for android 12 higher
-        if(permission12 && permission11) {
+        if(bluetoothPerm12 && bluetoothPerm11) {
           console.log('masuk atas')
           const bluetoothConnectGranted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
@@ -228,40 +234,70 @@ const App = () => {
           const bluetoothScanGranted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
             permissions,
-          )
-  
+          )  
           if(bluetoothScanGranted) {
             scanDevices()
           } else {
             // ignore
           }
         }
-
       }
       blueTooth();
     } catch (err) {
       console.warn(err);
     }
+
+    // try {
+    //   async function fileManagement() {
+    //     const permissions = {
+    //       title: 'HSD file management meminta izin untuk mengakses file',
+    //       message: 'HSD file management memerlukan akses ke file untuk proses management file',
+    //       buttonNeutral: 'Lain Waktu',
+    //       buttonNegative: 'Tidak',
+    //       buttonPositive: 'Boleh',
+    //     }
+
+    //     const fileManagementPerm =  await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE )
+        
+    //     console.log('izin akses file :' + fileManagementPerm)
+        
+    //     if(fileManagementPerm) {
+    //       console.log('akses managemen file diizinkan')
+    //       const fileManagementGranted = await PermissionsAndroid.request(
+    //         PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+    //         permissions,
+    //       )  
+    //       // if(fileManagementGranted) {
+    //       //   scanDevices()
+    //       // } else {
+    //       //   // ignore
+    //       // }
+    //     }
+    //   }
+    //   fileManagement()
+    // } catch (err) {
+    //   console.warn(err)
+    // }
   }, [scanDevices]);
 
-  const Item = ({ name, isFile }) => {
-    return (
-      <View>
-        <Text style={styles.name}>Name: {name}</Text>
-        <Text> {isFile ? "It is a file" : "It's a folder"}</Text>
-      </View>
-    )
-  }
+  // const Item = ({ name, isFile }) => {
+  //   return (
+  //     <View>
+  //       <Text style={styles.name}>Name: {name}</Text>
+  //       <Text> {isFile ? "It is a file" : "It's a folder"}</Text>
+  //     </View>
+  //   )
+  // }
 
-  const renderItem = ({ item, index }) => {
-    return (
-      <View>
-        <Text style={styles.title}>{index}</Text>
-        {/* The isFile method indicates whether the scanned content is a file or a folder*/}
-        <Item name={item.name} isFile={item.isFile()} />
-      </View>
-    )
-  }
+  // const renderItem = ({ item, index }) => {
+  //   return (
+  //     <View>
+  //       <Text style={styles.title}>{index}</Text>
+  //       {/* The isFile method indicates whether the scanned content is a file or a folder*/}
+  //       <Item name={item.name} isFile={item.isFile()} />
+  //     </View>
+  //   )
+  // }
 
   return (
       <ScrollView style={styles.container}>
@@ -303,11 +339,11 @@ const App = () => {
         </View>
         <SamplePrint />
         <Text>Downloads folder : {downloadsFolder} {console.log(downloadsFolder)}</Text>
-        <FlatList
+        {/* <FlatList
           data={files}
           renderItem={renderItem}
           keyExtractor={(item) => item.name}
-        />
+        /> */}
         <View style={{height: 100}} />
       </ScrollView>
   );
