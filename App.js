@@ -2,10 +2,11 @@ import React, { useState, useEffect, useCallback } from 'react';
 import {
   ActivityIndicator,
   DeviceEventEmitter,
-  FlatList,
+  // FlatList,
   NativeEventEmitter,
   PermissionsAndroid,
   Platform,
+  // SafeAreaView,
   ScrollView,
   Text,
   ToastAndroid,
@@ -26,10 +27,23 @@ const App = () => {
   const [name, setName] = useState('');
   const [boundAddress, setBoundAddress] = useState('');
   // path downloads folder
-  const [downloadsFolder, setDownloadsFolder] = useState('')
-  // 
-  const [files, setFiles] = useState([])
+  const [downloadsFolder, setDownloadsFolder] = useState('');
+  // store read file
+  const [fileData, setFileData] = useState({})
+  // file list
+  const [files, setFiles] = useState([]);
+  
+  // file download path
+  const filePath = RNFS.DownloadDirectoryPath + '/kala.json'
+  
+  // procure data from a chosen file (Reading files)
+  const readFile = async (path) => {
+    const response = await RNFS.readFile(path);
+    // console.log('ini response :' + response)
+    setFileData(JSON.parse(response));
+  };
 
+  // getting files and folder content (reading directory)
   const getFileContent = async (path) => {
     const reader = await RNFS.readDir(path);
     setFiles(reader);
@@ -77,12 +91,14 @@ const App = () => {
       scan();
     }
 
-    // get user's file download path 
-    setDownloadsFolder(RNFS.DownloadDirectoryPath)
+    // Getting file download path (getting file paths)
+    setDownloadsFolder(RNFS.DownloadDirectoryPath);
 
-    // acces file 
+    // getting files and folder content (reading directory)
     getFileContent(RNFS.DownloadDirectoryPath)
-
+    
+    // procure data from a chosen file (Reading files)
+    readFile(filePath);
   }, [boundAddress, deviceAlreadPaired, deviceFoundEvent, pairedDevices, scan]);
 
   const deviceAlreadPaired = useCallback(
@@ -200,13 +216,28 @@ const App = () => {
           buttonNegative: 'Tidak',
           buttonPositive: 'Boleh',
         };
+        
+        // const readStorage = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE )
+        // const readStorageGranted = await PermissionsAndroid.request(
+        //   PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+        //   permissions,
+        // )
+
+        // const writeStorage = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE )
+        // const writeStorageGranted = await PermissionsAndroid.request(
+        //   PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        //   permissions,
+        // )
+
+        // console.log('read storage ' + readStorage + ` ${readStorageGranted}`)
+        // console.log('write storage ' + writeStorage + ` ${writeStorageGranted}`)
 
         const permission12 = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT )
         const permission11 = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION )
-
+        
         // permissions for android 12 higher
         if(permission12 && permission11) {
-          console.log('masuk atas')
+          console.log('masuk android 12')
           const bluetoothConnectGranted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
             permissions,
@@ -224,7 +255,7 @@ const App = () => {
           }
         } else { 
           // permissions for android 11 lower
-          console.log('masuk bawah')
+          console.log('masuk android 11 kebawah')
           const bluetoothScanGranted = await PermissionsAndroid.request(
             PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
             permissions,
@@ -239,77 +270,133 @@ const App = () => {
 
       }
       blueTooth();
+
+      async function storage() {
+        const permissions = {
+          title: 'HSD bluetooth meminta izin untuk mengakses storage/penyimpanan',
+          message: 'HSD bluetooth memerlukan akses ke storage/penyimpanan untuk proses printer',
+          buttonNeutral: 'Lain Waktu',
+          buttonNegative: 'Tidak',
+          buttonPositive: 'Boleh',
+        };
+        
+        const readStorage = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE )
+        const writeStorage = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE )
+
+        console.log('permissions read storage ' + readStorage)
+        console.log('permissions write storage ' + writeStorage)
+
+        if(readStorage || writeStorage) {
+          const readStorageGranted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+            permissions,
+          )
+
+          const writeStorageGranted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+            permissions,
+          )
+
+          console.log('read storage granted? ' + readStorageGranted)
+          console.log('write storage granted? ' + writeStorageGranted)
+          
+          if(
+            readStorageGranted === PermissionsAndroid.RESULTS.GRANTED ||
+            writeStorageGranted === PermissionsAndroid.RESULTS.GRANTED
+          ) {
+            return true
+          } else {
+            return false
+          }
+        }
+
+        // if(writeStorage) {
+        //   const writeStorageGranted = await PermissionsAndroid.request(
+        //     PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+        //     permissions,
+        //   )
+          
+        //   console.log('write storage granted? ' + writeStorageGranted)
+
+        //   if(writeStorageGranted === PermissionsAndroid.RESULTS.GRANTED) {
+        //     return true
+        //   } else {
+        //     return false
+        //   }
+        // }
+      }
+      storage()
+
     } catch (err) {
       console.warn(err);
     }
   }, [scanDevices]);
+  
 
-  const Item = ({ name, isFile }) => {
-    return (
-      <View>
-        <Text style={styles.name}>Name: {name}</Text>
-        <Text> {isFile ? "It is a file" : "It's a folder"}</Text>
-      </View>
-    )
+  console.log( 'ini isi file kala json :' + fileData)
+  // console.log('ini isi folder download :' + files.some(file => file.name === 'kala.json'))
+
+  const checkingKalaJson = () => {
+    if(files.some(file => file.name === 'kala.json')) {
+      return true
+    }
+    return false
   }
 
-  const renderItem = ({ item, index }) => {
-    return (
-      <View>
-        <Text style={styles.title}>{index}</Text>
-        {/* The isFile method indicates whether the scanned content is a file or a folder*/}
-        <Item name={item.name} isFile={item.isFile()} />
-      </View>
-    )
-  }
-
+  
   return (
-      <ScrollView style={styles.container}>
-        <View style={styles.bluetoothStatusContainer}>
-          <Text style={styles.bluetoothStatus(bleOpend ? '#47BF34' : '#A8A9AA')}>
-            Bluetooth {bleOpend ? 'Aktif' : 'Non Aktif'}
-          </Text>
-        </View>
-        {!bleOpend && <Text style={styles.bluetoothInfo}>Mohon aktifkan bluetooth anda</Text>}
-        <Text style={styles.sectionTitle}>Printer yang terhubung ke aplikasi:</Text>
-        {boundAddress.length > 0 && (
-          <ItemList
-            label={name}
-            value={boundAddress}
-            onPress={() => unPair(boundAddress)}
-            actionText="Putus"
-            color="#E9493F"
-          />
-        )}
-        {boundAddress.length < 1 && (
-          <Text style={styles.printerInfo}>Belum ada printer yang terhubung</Text>
-        )}
-        <Text style={styles.sectionTitle}>Bluetooth yang terhubung ke HP ini:</Text>
-        {loading ? <ActivityIndicator animating={true} /> : null}
-        <View style={styles.containerList}>
-          {pairedDevices.map((item, index) => {
-            return (
-              <ItemList
-                key={index}
-                onPress={() => connect(item)}
-                label={item.name}
-                value={item.address}
-                connected={item.address === boundAddress}
-                actionText="Hubungkan"
-                color="#00BCD4"
-              />
-            );
-          })}
-        </View>
-        <SamplePrint />
-        <Text>Downloads folder : {downloadsFolder} {console.log(downloadsFolder)}</Text>
-        <FlatList
-          data={files}
-          renderItem={renderItem}
-          keyExtractor={(item) => item.name}
+    <ScrollView style={styles.container}>
+      {/* {
+        console.log( 'ini isi file kala json :' + fileData)
+      }
+      {
+        console.log('ini isi folder download :' + files.filter(item => {
+          return item.name === 'kala.json'
+        }))
+      } */}
+      <View style={styles.bluetoothStatusContainer}>
+        <Text style={styles.bluetoothStatus(bleOpend ? '#47BF34' : '#A8A9AA')}>
+          Bluetooth {bleOpend ? 'Aktif' : 'Non Aktif'}
+        </Text>
+      </View>
+      {!bleOpend && <Text style={styles.bluetoothInfo}>Mohon aktifkan bluetooth anda</Text>}
+      <Text style={styles.sectionTitle}>Printer yang terhubung ke aplikasi:</Text>
+      {boundAddress.length > 0 && (
+        <ItemList
+          label={name}
+          value={boundAddress}
+          onPress={() => unPair(boundAddress)}
+          actionText="Putus"
+          color="#E9493F"
         />
-        <View style={{height: 100}} />
-      </ScrollView>
+      )}
+      {boundAddress.length < 1 && (
+        <Text style={styles.printerInfo}>Belum ada printer yang terhubung</Text>
+      )}
+      <Text style={styles.sectionTitle}>Bluetooth yang terhubung ke HP ini:</Text>
+      {loading ? <ActivityIndicator animating={true} /> : null}
+      <View style={styles.containerList}>
+        {pairedDevices.map((item, index) => {
+          return (
+            <ItemList
+              key={index}
+              onPress={() => connect(item)}
+              label={item.name}
+              value={item.address}
+              connected={item.address === boundAddress}
+              actionText="Hubungkan"
+              color="#00BCD4"
+            />
+          );
+        })}
+      </View>
+      <SamplePrint 
+        fileData={fileData} 
+        checkingKalaJson={checkingKalaJson()}
+      />
+      <Text>Downloads folder : {downloadsFolder} </Text>
+      <View style={{height: 100}} />
+    </ScrollView>
   );
 };
 
