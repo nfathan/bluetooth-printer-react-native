@@ -313,13 +313,13 @@ const SamplePrint = (props) => {
         />
       </View>
 
-      {
-        props.checkingKalaJson ? 
+      {/* {
+        props.checkingDownloadsFile ? 
         console.log('siap ngeprint') 
         :
         console.log('belum siap ngeprint')
 
-      }
+      } */}
     </View>
   );
 };
