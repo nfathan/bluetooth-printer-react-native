@@ -555,7 +555,7 @@ const App = () => {
       if(!isPrinterBound) {
         Alert.alert(
           "Belum ada Printer yang terhubung",  
-          "Mohon klik tombol" + ` "Hubungkan" ` + "agar Printer terhubung ke Aplikasi.", 
+          "Mohon pilih Printer dan tekan tombol" + ` "Hubungkan" ` + "agar Printer terhubung ke Aplikasi.", 
         [
           {
             text: "OK",
