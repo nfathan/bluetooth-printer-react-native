@@ -28,7 +28,7 @@ const styles = StyleSheet.create({
     backgroundColor: '#E7E7E7',
     marginBottom: 12,
     padding: 12,
-    borderRadius: 4,
+    borderRadius: 10,
   },
   label: { fontWeight: 'bold' },
   connected: { fontWeight: 'bold', color: '#00BCD4' },
@@ -36,7 +36,7 @@ const styles = StyleSheet.create({
     backgroundColor: color,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    borderRadius: 4,
+    borderRadius: 6,
   }),
   actionText: { color: 'white' },
 });
