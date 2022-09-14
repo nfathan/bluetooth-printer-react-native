@@ -27,6 +27,8 @@ import { BluetoothEscposPrinter } from 'react-native-bluetooth-escpos-printer';
 
 import BackgroundJob from 'react-native-background-actions';
 
+import formatHelp from './format.helpers'
+
 const sleep = (time) => new Promise((resolve) => setTimeout(() => resolve(), time));
 
 BackgroundJob.on('expiration', () => {
@@ -60,12 +62,18 @@ const taskRandom = async (taskData) => {
   }
 
   const printingDownloadFiles = async () => {
-    let columnWidths = [4, 6, 20];
+    let columnWidths = [21, 11];
 
     try {
       await BluetoothEscposPrinter.printerAlign(BluetoothEscposPrinter.ALIGN.CENTER);
       await BluetoothEscposPrinter.printColumn(
-        [48],
+        [32],
+        [BluetoothEscposPrinter.ALIGN.CENTER],
+        [`${downloadFilesData.company_name}` || 'nama company masih ghoib'],
+        {},
+      );
+      await BluetoothEscposPrinter.printColumn(
+        [32],
         [BluetoothEscposPrinter.ALIGN.CENTER],
         [`${downloadFilesData.company_address}` || 'alamat company masih ghoib'],
         {},
@@ -73,13 +81,13 @@ const taskRandom = async (taskData) => {
       await BluetoothEscposPrinter.printColumn(
         [32],
         [BluetoothEscposPrinter.ALIGN.LEFT],
-        [`NO: ${downloadFilesData.purchase_invoice_no}`],
+        [`NO: ${downloadFilesData.purchase_invoice_no || downloadFilesData.sales_invoice_no}`],
         {},
       );
       await BluetoothEscposPrinter.printColumn(
         [32],
         [BluetoothEscposPrinter.ALIGN.LEFT],
-        [`TANGGAL: ${downloadFilesData.transaction_date}`],
+        [`TANGGAL: ${formatHelp.getReadableDateV2(downloadFilesData.transaction_date)}`],
         {},
       );
       await BluetoothEscposPrinter.printColumn(
@@ -115,25 +123,16 @@ const taskRandom = async (taskData) => {
       await BluetoothEscposPrinter.printText('\r\n', {});
 
       downloadFilesData.product.map( async (productItem) => {
-        // await BluetoothEscposPrinter.printColumn(
-        //   [32],
-        //   [BluetoothEscposPrinter.ALIGN.LEFT],
-        //   [`${productItem.product_name}`],
-        //   {},
-        // );
-
+        // await  BluetoothEscposPrinter.printText(`${productItem.product_name}\r\n`,{})
         await BluetoothEscposPrinter.printColumn(
           columnWidths,
           [
             BluetoothEscposPrinter.ALIGN.LEFT,
-            BluetoothEscposPrinter.ALIGN.LEFT,
             BluetoothEscposPrinter.ALIGN.RIGHT,
           ],
           [
-            'test nama',
-            `${productItem.quantity} x`, 
-            ` ${productItem.unit}`, 
-            `${productItem.price}`,
+            `${productItem.quantity} ${productItem.unit} x ${formatHelp.currencyFormatWithRegex(productItem.price, 0)}`, 
+            `${formatHelp.currencyFormatWithRegex( (Number(productItem.quantity) * Number(productItem.price)), 0 )}`,
           ],
           {},
         )
@@ -154,7 +153,7 @@ const taskRandom = async (taskData) => {
         ],
         [
           `TOTAL`,
-          `${downloadFilesData.amount}`
+          `${formatHelp.currencyFormatWithRegex(Number(downloadFilesData.amount), 0)}`
         ],
         {},
       );
@@ -166,7 +165,7 @@ const taskRandom = async (taskData) => {
         ],
         [
           `DIBAYAR`,
-          `${downloadFilesData.paid}`
+          `${formatHelp.currencyFormatWithRegex(downloadFilesData.paid, 0)}`
         ],
         {},
       );
@@ -179,7 +178,7 @@ const taskRandom = async (taskData) => {
         ],
         [
           `KEMBALIAN`,
-          `${downloadFilesData.change_money}`
+          ` ${formatHelp.currencyFormatWithRegex(downloadFilesData.change_money, 0)}`
         ],
         {},
       );
