@@ -33,6 +33,8 @@ BackgroundJob.on('expiration', () => {
   console.log('iOS: I am being closed!');
 });
 
+let number = 0
+
 const taskRandom = async (taskData) => {
   let downloadFilesDir = null
   let downloadFilesData = null
@@ -217,9 +219,9 @@ const taskRandom = async (taskData) => {
     // For loop with a delay
     const { delay } = taskData;
     console.log('BG ACTIONS ' + BackgroundJob.isRunning(), delay)
-    for (let i = 0; BackgroundJob.isRunning(); i++) {
-      console.log('Runned -> ', i);
-      await BackgroundJob.updateNotification({ taskDesc: 'Runned -> ' + i });
+    for (number; BackgroundJob.isRunning(); number++) {
+      console.log('Runned -> ', number);
+      await BackgroundJob.updateNotification({ taskDesc: 'Runned -> ' + number });
       await sleep(delay);
 
       await getDownloadFilesDir(RNFS.DownloadDirectoryPath)
@@ -276,16 +278,20 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [boundAddress, setBoundAddress] = useState('');
-  // path downloads folder
-  // const [downloadsFolder, setDownloadsFolder] = useState('');
-  // store read file
   const [fileData, setFileData] = useState({})
   // file list 
   const [files, setFiles] = useState([]);
-  
   // file download path
   const filePath = RNFS.DownloadDirectoryPath + '/kala.json'
   
+  // boolean for priter is paired or not 
+  let isPrinterBound = false
+  if(boundAddress.length > 0) {
+    isPrinterBound = true
+  } else {
+    isPrinterBound = false
+  }
+
   // getting files and folder content (reading directory)
   const getFileContent = async (path) => {
     const reader = await RNFS.readDir(path);
@@ -424,18 +430,10 @@ const App = () => {
   //   }
   // }
 
-  let printerTerhubung = false
-  if(boundAddress.length > 0) {
-    printerTerhubung = true
-  } else {
-    printerTerhubung = false
-  }
-  console.log('test printer terhubung :' + printerTerhubung)
-
   const backAction = () => {
-    if(printerTerhubung) {
+    if(isPrinterBound) {
       Alert.alert(
-        "Printer sedang terhubung. Jika menutup Aplikasi, Anda tidak bisa melakukan print!",  
+        "Printer sedang terhubung. Jika menutup Aplikasi, Anda tidak bisa melakukan print",  
         "Apakah Anda Yakin ingin menutup Aplikasi?", 
       [
         {
@@ -530,7 +528,7 @@ const App = () => {
     //   }
     // }
 
-  }, [boundAddress, deviceAlreadPaired, deviceFoundEvent, pairedDevices, scan]);
+  }, [boundAddress, deviceAlreadPaired, deviceFoundEvent, pairedDevices, scan, number,]);
 
   const deviceAlreadPaired = useCallback(
     rsp => {
@@ -592,7 +590,16 @@ const App = () => {
       },
       e => {
         setLoading(false);
-        alert(e);
+        Alert.alert(
+          "Gagal menghubungkan",
+          "Mohon ulangi lagi.", 
+        [
+          {
+            text: "OK",
+            onPress: () => null,
+            style: "cancel"
+          },
+        ]);
       },
     );
   };
@@ -769,13 +776,27 @@ const App = () => {
    */
   const toggleBackground = async () => {
     playing = !playing;
+
     if (playing) {
-      try {
-        console.log('Trying to start background service');
-        await BackgroundJob.start(taskRandom, options);
-        console.log('Successful start!');
-      } catch (e) {
-        console.log('Error', e);
+      if(!isPrinterBound) {
+        Alert.alert(
+          "Belum ada Printer yang terhubung",  
+          "Mohon klik tombol" + ` "Hubungkan" ` + "agar Printer terhubung ke Aplikasi.", 
+        [
+          {
+            text: "OK",
+            onPress: () => null,
+            style: "cancel"
+          },
+        ]);
+      } else {
+        try {        
+          console.log('Trying to start background service');
+          await BackgroundJob.start(taskRandom, options);
+          console.log('Successful start!');
+        } catch (e) {
+          console.log('Error', e);
+        }
       }
     } else {
       console.log('Stop background service');
@@ -784,9 +805,7 @@ const App = () => {
   };
 
   console.log( 'ini isi file kala json :' + fileData)
-  // console.log('ini isi folder download :' + files.some(file => file.name === 'kala.json'))
 
-  console.log('ini playing :' + BackgroundJob.isRunning())
 
   return (
     <SafeAreaView style={{ flex: 1 }}>
@@ -810,7 +829,7 @@ const App = () => {
         {boundAddress.length < 1 && (
           <Text style={styles.printerInfo}>Belum ada Printer yang terhubung</Text>
         )}
-        <Text style={styles.sectionTitle}>Bluetooth yang terhubung ke Perangkat ini:</Text>
+        <Text style={styles.sectionTitle}>Bluetooth yang terhubung ke Perangkat:</Text>
         {loading ? <ActivityIndicator animating={true} /> : null}
         <View style={styles.containerList}>
           {pairedDevices.map((item, index) => {
@@ -848,29 +867,44 @@ const App = () => {
           justifyContent: "center",
           paddingHorizontal: 10 
         }}>
-        <TouchableOpacity
-          style={{
-            // position: 'fixed',
-            alignItems: "center",            
-            backgroundColor: "darkturquoise",
-            padding: 20,
-            borderRadius: 10,
-          }}
-          onPress={toggleBackground}>
-            <Text 
-              style={{ 
-                color: 'white',
-                textAlign: 'center',
-                fontSize: 17, 
-              }}>
-                {                  
-                  !BackgroundJob.isRunning() ?
-                    'TEKAN DISINI UNTUK AKTIFKAN APLIKASI'
-                    :
-                    'TEKAN DISINI UNTUK HENTIKAN APLIKASI'
-                } 
-            </Text>
-        </TouchableOpacity>
+        {
+          number <= 0 ?
+            <TouchableOpacity
+              style={{
+                alignItems: "center",            
+                backgroundColor: "#00BCD4",
+                padding: 20,
+                borderRadius: 10,
+              }}
+              onPress={toggleBackground}>
+                <Text 
+                  style={{ 
+                    color: 'white',
+                    textAlign: 'center',
+                    fontSize: 17, 
+                  }}>
+                    TEKAN DISINI UNTUK AKTIFKAN APLIKASI
+                </Text>
+            </TouchableOpacity>
+            :
+            <TouchableOpacity
+              style={{
+                alignItems: "center",            
+                backgroundColor: "#E9493F",
+                padding: 20,
+                borderRadius: 10,
+              }}
+              onPress={toggleBackground}>
+                <Text 
+                  style={{ 
+                    color: 'white',
+                    textAlign: 'center',
+                    fontSize: 17, 
+                  }}>
+                    TEKAN DISINI UNTUK HENTIKAN APLIKASI
+                </Text>
+            </TouchableOpacity>
+        }
       </View>
     </SafeAreaView>
   );
