@@ -12,6 +12,8 @@ import {
   TouchableOpacity,
   Linking,
   SafeAreaView,
+  BackHandler, 
+  Alert
 } from 'react-native';
 import { BluetoothManager } from 'react-native-bluetooth-escpos-printer';
 import ItemList from './ItemList';
@@ -422,7 +424,40 @@ const App = () => {
   //   }
   // }
 
+  let printerTerhubung = false
+  if(boundAddress.length > 0) {
+    printerTerhubung = true
+  } else {
+    printerTerhubung = false
+  }
+  console.log('test printer terhubung :' + printerTerhubung)
+
+  const backAction = () => {
+    if(printerTerhubung) {
+      Alert.alert(
+        "Printer sedang terhubung. Jika menutup Aplikasi, Anda tidak bisa melakukan print!",  
+        "Apakah Anda Yakin ingin menutup Aplikasi?", 
+      [
+        {
+          text: "Tidak",
+          onPress: () => null,
+          style: "cancel"
+        },
+        { text: "Ya", onPress: () => BackHandler.exitApp() }
+      ]);
+      return true;
+    } else {
+      BackHandler.exitApp()
+      return false
+    }
+  };
+
   useEffect(() => {
+    BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
     BluetoothManager.isBluetoothEnabled().then(
       enabled => {
         setBleOpend(Boolean(enabled));
@@ -464,16 +499,6 @@ const App = () => {
       scan();
     }
 
-    // if(pairedDevices.length > 0) {
-    //   if(pairedDevices.some(item => item.name === 'RPP02N')) {
-    //     connect(item)
-    //   }
-    // }
-    console.log('paired devices :' + pairedDevices)
-
-    // Getting file download path (getting file paths)
-    // setDownloadsFolder(RNFS.DownloadDirectoryPath);
-
     // getting files and folder content (reading directory)
     getFileContent(RNFS.DownloadDirectoryPath)
     
@@ -484,6 +509,11 @@ const App = () => {
       return
     }
     
+    BackHandler.removeEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
     // printing if present download files and then deleted it
     // if(boundAddress.length > 0) {
     //   checkingDownloadFiles()
