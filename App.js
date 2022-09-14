@@ -277,11 +277,6 @@ const App = () => {
   const [name, setName] = useState('');
   const [boundAddress, setBoundAddress] = useState('');
   const [backgroundRunning, setBackgroundRunning] = useState(BackgroundJob.isRunning())
-  // const [fileData, setFileData] = useState({})
-  // file list 
-  // const [files, setFiles] = useState([]);
-  // file download path
-  // const filePath = RNFS.DownloadDirectoryPath + '/kala.json'
   
   // boolean for priter is paired or not 
   let isPrinterBound = false
@@ -290,144 +285,6 @@ const App = () => {
   } else {
     isPrinterBound = false
   }
-
-  // getting files and folder content (reading directory)
-  // const getFileContent = async (path) => {
-  //   const reader = await RNFS.readDir(path);
-  //   setFiles(reader);
-  // };
-
-  // procure data from a chosen file (Reading files)
-  // const readFile = async (path) => {
-  //   const response = await RNFS.readFile(path);
-  //   console.log('ini response dari read file:' + response)
-  //   setFileData(JSON.parse(response));
-  // };
-
-  // const checkingDownloadFiles = () => {
-  //   if(files.length > 0) {
-  //     if(files.some(file => file.name === 'kala.json')) {
-  //       console.log('file download terbaca')
-  //       return true
-  //     }
-  //     console.log('file download tidak terbaca')
-  //     return false
-  //   }
-  // }
-
-  // const printingDownloadFiles = async () => {
-  //   let columnWidths = [4, 6, 20];
-
-  //   try {
-  //     await BluetoothEscposPrinter.printText('\r\n\r\n\r\n', {});
-  //     await BluetoothEscposPrinter.printPic(hsdLogo, { width: 250, left: 150 });
-  //     await BluetoothEscposPrinter.printerAlign(BluetoothEscposPrinter.ALIGN.CENTER);
-  //     await BluetoothEscposPrinter.printColumn(
-  //       [48],
-  //       [BluetoothEscposPrinter.ALIGN.CENTER],
-  //       [`${fileData.company_address}` || 'alamat company masih ghoib'],
-  //       {},
-  //     );
-  //     await BluetoothEscposPrinter.printColumn(
-  //       [32],
-  //       [BluetoothEscposPrinter.ALIGN.LEFT],
-  //       [`No. Transaksi: ${fileData.purchase_invoice_no}`],
-  //       {},
-  //     );
-  //     await BluetoothEscposPrinter.printColumn(
-  //       [32],
-  //       [BluetoothEscposPrinter.ALIGN.LEFT],
-  //       [`Tanggal: ${fileData.transaction_date}`],
-  //       {},
-  //     );
-  //     await BluetoothEscposPrinter.printColumn(
-  //       [32],
-  //       [BluetoothEscposPrinter.ALIGN.LEFT],
-  //       [`Kasir: ${fileData.cashier}`],
-  //       {},
-  //     );
-  //     await BluetoothEscposPrinter.printText(
-  //       '==============================',
-  //       {},
-  //     );
-
-  //     await BluetoothEscposPrinter.printText('\r\n', {});
-
-  //     fileData.product.map( async (productItem) => {
-  //       // await BluetoothEscposPrinter.printColumn(
-  //       //   [32],
-  //       //   [BluetoothEscposPrinter.ALIGN.LEFT],
-  //       //   [`${productItem.product_name}`],
-  //       //   {},
-  //       // );
-
-  //       await BluetoothEscposPrinter.printColumn(
-  //         columnWidths,
-  //         [
-  //           BluetoothEscposPrinter.ALIGN.LEFT,
-  //           BluetoothEscposPrinter.ALIGN.LEFT,
-  //           BluetoothEscposPrinter.ALIGN.RIGHT,
-  //         ],
-  //         [
-  //           `${productItem.quantity} x`, 
-  //           ` ${productItem.unit}`, 
-  //           `${productItem.price}`,
-  //         ],
-  //         {},
-  //       )
-  //     })
-
-  //     await BluetoothEscposPrinter.printText('\r\n', {});
-
-  //     await BluetoothEscposPrinter.printColumn(
-  //       [32],
-  //       [BluetoothEscposPrinter.ALIGN.LEFT],
-  //       [`Total: ${fileData.amount}`],
-  //       {},
-  //     );
-  //     await BluetoothEscposPrinter.printColumn(
-  //       [32],
-  //       [BluetoothEscposPrinter.ALIGN.LEFT],
-  //       [`Dibayar: ${fileData.paid}`],
-  //       {},
-  //     );
-      
-  //     await BluetoothEscposPrinter.printText(
-  //       '==============================',
-  //       {},
-  //     );
-
-  //     await BluetoothEscposPrinter.printText('\r\n', {});
-
-  //     await BluetoothEscposPrinter.printColumn(
-  //       [32],
-  //       [BluetoothEscposPrinter.ALIGN.LEFT],
-  //       [`Kembalian: ${fileData.change_money}`],
-  //       {},
-  //     );
-
-  //     await BluetoothEscposPrinter.printText('\r\n\r\n\r\n', {});
-      
-  //     await BluetoothEscposPrinter.printText(
-  //       '========== Lunas ==========',
-  //       {},
-  //     );
-      
-  //     await BluetoothEscposPrinter.printText('\r\n\r\n\r\n', {});
-  //     await BluetoothEscposPrinter.printText('\r\n\r\n\r\n', {});
-  //   } catch (e) {
-  //     alert(e.message || 'ERROR');
-  //   }
-  // }
-  
-  // const deleteDownloadFiles = async (path) => {
-  //   try {
-  //     //delete the item present at 'path'
-  //     await RNFS.unlink(path); 
-  //   } catch (error) {
-  //     console.log(error);
-  //   }
-  // }
 
   useEffect(() => {
     const backAction = () => {
@@ -495,34 +352,8 @@ const App = () => {
     if (pairedDevices.length < 1) {
       scan();
     }
-
-    // getting files and folder content (reading directory)
-    // getFileContent(RNFS.DownloadDirectoryPath)
-    
-    // procure data from a chosen file (Reading files)
-    // if(checkingDownloadFiles() ) {
-    //   readFile(filePath);
-    // } else {
-    //   return
-    // }
     
     return () => backHandler.remove();
-
-    // printing if present download files and then deleted it
-    // if(boundAddress.length > 0) {
-    //   checkingDownloadFiles()
-      
-    //   if(checkingDownloadFiles()) {
-    //     console.log('siap ngeprint')
-    //     printingDownloadFiles()
-
-    //     deleteDownloadFiles(filePath)
-    //     getFileContent(RNFS.DownloadDirectoryPath)
-    //   } else {
-    //     console.log('belum siap ngeprint')
-    //     return
-    //   }
-    // }
 
   }, [boundAddress, deviceAlreadPaired, deviceFoundEvent, pairedDevices, scan, backgroundRunning, ]);
 
