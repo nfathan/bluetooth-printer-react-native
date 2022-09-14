@@ -286,11 +286,130 @@ const App = () => {
     isPrinterBound = false
   }
 
+  const deviceAlreadPaired = useCallback(
+    rsp => {
+      var ds = null;
+      if (typeof rsp.devices === 'object') {
+        ds = rsp.devices;
+      } else {
+        try {
+          ds = JSON.parse(rsp.devices);
+        } catch (e) {}
+      }
+      if (ds && ds.length) {
+        let pared = pairedDevices;
+        if (pared.length < 1) {
+          pared = pared.concat(ds || []);
+        }
+        setPairedDevices(pared);
+      }
+    },
+    [pairedDevices],
+  );
+
+  const deviceFoundEvent = useCallback(
+    rsp => {
+      var r = null;
+      try {
+        if (typeof rsp.device === 'object') {
+          r = rsp.device;
+        } else {
+          r = JSON.parse(rsp.device);
+        }
+      } catch (e) {
+        // ignore error
+      }
+
+      if (r) {
+        let found = foundDs || [];
+        if (found.findIndex) {
+          let duplicated = found.findIndex(function (x) {
+            return x.address == r.address;
+          });
+          if (duplicated == -1) {
+            found.push(r);
+            setFoundDs(found);
+          }
+        }
+      }
+    },
+    [foundDs],
+  );
+
+  const scan = useCallback(() => {
+    try {
+      async function blueTooth() {
+        const permissions = {
+          title: 'HSD bluetooth meminta izin untuk mengakses bluetooth',
+          message: 'HSD bluetooth memerlukan akses ke bluetooth untuk proses koneksi ke bluetooth printer',
+          buttonNeutral: 'Lain Waktu',
+          buttonNegative: 'Tidak',
+          buttonPositive: 'Boleh',
+        };
+        
+        const readStorage = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE )
+        const readStorageGranted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
+          permissions,
+        )
+
+        const writeStorage = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE )
+        const writeStorageGranted = await PermissionsAndroid.request(
+          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
+          permissions,
+        )
+
+        console.log('permissions read storage :' + readStorage + ` and read storage granted : ${readStorageGranted}`)
+        console.log('permissions write storage :' + writeStorage + ` and read storage granted : ${writeStorageGranted}`)
+
+        const permission12 = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT )
+        const permission11 = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION )
+        
+        // permissions for android 12 higher
+        if(permission12 && permission11) {
+          console.log('masuk android 12')
+          const bluetoothConnectGranted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
+            permissions,
+          );
+          if (bluetoothConnectGranted === PermissionsAndroid.RESULTS.GRANTED) {
+            const bluetoothScanGranted = await PermissionsAndroid.request(
+              PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
+              permissions,
+            );
+            if (bluetoothScanGranted === PermissionsAndroid.RESULTS.GRANTED) {
+              scanDevices();
+            }
+          } else {
+            // ignore akses ditolak
+          }
+        } else { 
+          // permissions for android 11 lower
+          console.log('masuk android 11 kebawah')
+          const bluetoothScanGranted = await PermissionsAndroid.request(
+            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
+            permissions,
+          )
+  
+          if(bluetoothScanGranted === PermissionsAndroid.RESULTS.GRANTED) {
+            scanDevices()
+          } else {
+            // ignore
+          }
+        }
+
+      }
+      blueTooth();
+    } catch (err) {
+      console.warn(err);
+    }
+  }, [scanDevices]);
+  
   useEffect(() => {
     const backAction = () => {
       if(isPrinterBound) {
         Alert.alert(
-          "Printer sedang terhubung. Jika menutup Aplikasi, Anda tidak bisa melakukan print",  
+          "Printer sedang terhubung. Jika menutup Aplikasi, Anda tidak bisa melakukan print.",  
           "Apakah Anda Yakin ingin menutup Aplikasi?", 
         [
           {
@@ -357,55 +476,7 @@ const App = () => {
 
   }, [boundAddress, deviceAlreadPaired, deviceFoundEvent, pairedDevices, scan, backgroundRunning, ]);
 
-  const deviceAlreadPaired = useCallback(
-    rsp => {
-      var ds = null;
-      if (typeof rsp.devices === 'object') {
-        ds = rsp.devices;
-      } else {
-        try {
-          ds = JSON.parse(rsp.devices);
-        } catch (e) {}
-      }
-      if (ds && ds.length) {
-        let pared = pairedDevices;
-        if (pared.length < 1) {
-          pared = pared.concat(ds || []);
-        }
-        setPairedDevices(pared);
-      }
-    },
-    [pairedDevices],
-  );
-
-  const deviceFoundEvent = useCallback(
-    rsp => {
-      var r = null;
-      try {
-        if (typeof rsp.device === 'object') {
-          r = rsp.device;
-        } else {
-          r = JSON.parse(rsp.device);
-        }
-      } catch (e) {
-        // ignore error
-      }
-
-      if (r) {
-        let found = foundDs || [];
-        if (found.findIndex) {
-          let duplicated = found.findIndex(function (x) {
-            return x.address == r.address;
-          });
-          if (duplicated == -1) {
-            found.push(r);
-            setFoundDs(found);
-          }
-        }
-      }
-    },
-    [foundDs],
-  );
+  
 
   const connect = row => {
     setLoading(true);
@@ -470,132 +541,6 @@ const App = () => {
       },
     );
   }, [foundDs]);
-
-  const scan = useCallback(() => {
-    try {
-      async function blueTooth() {
-        const permissions = {
-          title: 'HSD bluetooth meminta izin untuk mengakses bluetooth',
-          message: 'HSD bluetooth memerlukan akses ke bluetooth untuk proses koneksi ke bluetooth printer',
-          buttonNeutral: 'Lain Waktu',
-          buttonNegative: 'Tidak',
-          buttonPositive: 'Boleh',
-        };
-        
-        const readStorage = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE )
-        const readStorageGranted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-          permissions,
-        )
-
-        const writeStorage = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE )
-        const writeStorageGranted = await PermissionsAndroid.request(
-          PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-          permissions,
-        )
-
-        console.log('permissions read storage :' + readStorage + ` and read storage granted : ${readStorageGranted}`)
-        console.log('permissions write storage :' + writeStorage + ` and read storage granted : ${writeStorageGranted}`)
-
-        const permission12 = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT )
-        const permission11 = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION )
-        
-        // permissions for android 12 higher
-        if(permission12 && permission11) {
-          console.log('masuk android 12')
-          const bluetoothConnectGranted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.BLUETOOTH_CONNECT,
-            permissions,
-          );
-          if (bluetoothConnectGranted === PermissionsAndroid.RESULTS.GRANTED) {
-            const bluetoothScanGranted = await PermissionsAndroid.request(
-              PermissionsAndroid.PERMISSIONS.BLUETOOTH_SCAN,
-              permissions,
-            );
-            if (bluetoothScanGranted === PermissionsAndroid.RESULTS.GRANTED) {
-              scanDevices();
-            }
-          } else {
-            // ignore akses ditolak
-          }
-        } else { 
-          // permissions for android 11 lower
-          console.log('masuk android 11 kebawah')
-          const bluetoothScanGranted = await PermissionsAndroid.request(
-            PermissionsAndroid.PERMISSIONS.ACCESS_FINE_LOCATION,
-            permissions,
-          )
-  
-          if(bluetoothScanGranted === PermissionsAndroid.RESULTS.GRANTED) {
-            scanDevices()
-          } else {
-            // ignore
-          }
-        }
-
-      }
-      blueTooth();
-
-      // async function storage() {
-      //   const permissions = {
-      //     title: 'HSD bluetooth meminta izin untuk mengakses storage/penyimpanan',
-      //     message: 'HSD bluetooth memerlukan akses ke storage/penyimpanan untuk proses printer',
-      //     buttonNeutral: 'Lain Waktu',
-      //     buttonNegative: 'Tidak',
-      //     buttonPositive: 'Boleh',
-      //   };
-        
-      //   const readStorage = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE )
-      //   const writeStorage = await PermissionsAndroid.check( PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE )
-
-      //   console.log('permissions read storage ' + readStorage)
-      //   console.log('permissions write storage ' + writeStorage)
-
-      //   if(readStorage || writeStorage) {
-      //     const readStorageGranted = await PermissionsAndroid.request(
-      //       PermissionsAndroid.PERMISSIONS.READ_EXTERNAL_STORAGE,
-      //       permissions,
-      //     )
-
-      //     const writeStorageGranted = await PermissionsAndroid.request(
-      //       PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      //       permissions,
-      //     )
-
-      //     console.log('read storage granted? ' + readStorageGranted)
-      //     console.log('write storage granted? ' + writeStorageGranted)
-          
-      //     if(
-      //       readStorageGranted === PermissionsAndroid.RESULTS.GRANTED ||
-      //       writeStorageGranted === PermissionsAndroid.RESULTS.GRANTED
-      //     ) {
-      //       return true
-      //     } else {
-      //       return false
-      //     }
-      //   }
-
-      //   // if(writeStorage) {
-      //   //   const writeStorageGranted = await PermissionsAndroid.request(
-      //   //     PermissionsAndroid.PERMISSIONS.WRITE_EXTERNAL_STORAGE,
-      //   //     permissions,
-      //   //   )
-          
-      //   //   console.log('write storage granted? ' + writeStorageGranted)
-
-      //   //   if(writeStorageGranted === PermissionsAndroid.RESULTS.GRANTED) {
-      //   //     return true
-      //   //   } else {
-      //   //     return false
-      //   //   }
-      //   // }
-      // }
-      // storage()
-
-    } catch (err) {
-      console.warn(err);
-    }
-  }, [scanDevices]);
   
   const handleChangeBackgroundRunning = () => {
     setBackgroundRunning(BackgroundJob.isRunning())
