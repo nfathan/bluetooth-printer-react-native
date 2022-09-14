@@ -763,7 +763,7 @@ const App = () => {
       <ScrollView style={styles.container}>
         <View style={styles.bluetoothStatusContainer}>
           <Text style={styles.bluetoothStatus(bleOpend ? '#47BF34' : '#A8A9AA')}>
-            Bluetooth {bleOpend ? 'Aktif' : 'Non Aktif'}
+            Bluetooth Sedang {bleOpend ? 'Aktif' : 'Non Aktif'}
           </Text>
         </View>
         {!bleOpend && <Text style={styles.bluetoothInfo}>Mohon aktifkan bluetooth anda</Text>}

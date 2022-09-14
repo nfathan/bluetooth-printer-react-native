@@ -11,7 +11,7 @@ export const styles = StyleSheet.create({
   bluetoothStatus: color => ({
     backgroundColor: color,
     padding: 8,
-    borderRadius: 6,
+    borderRadius: 16,
     color: 'white',
     paddingHorizontal: 14,
     marginBottom: 20,
