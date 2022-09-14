@@ -16,7 +16,7 @@ export const styles = StyleSheet.create({
     paddingHorizontal: 14,
     marginBottom: 20,
   }),
-  bluetoothInfo: { textAlign: 'center', fontSize: 16, color: '#FFC806', marginBottom: 20 },
+  bluetoothInfo: { textAlign: 'center', fontSize: 16, fontWeight: 'bold', color: '#00BCD4', marginBottom: 20 },
   sectionTitle: { fontWeight: 'bold', fontSize: 18, marginBottom: 12 },
   printerInfo: { textAlign: 'center', fontSize: 16, color: '#E9493F', marginBottom: 20 },
 });

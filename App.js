@@ -810,11 +810,11 @@ const App = () => {
     <SafeAreaView style={{ flex: 1 }}>
       <ScrollView style={styles.container}>
         <View style={styles.bluetoothStatusContainer}>
-          <Text style={styles.bluetoothStatus(bleOpend ? '#47BF34' : '#A8A9AA')}>
+          <Text style={styles.bluetoothStatus(bleOpend ? '#00BCD4' : '#A8A9AA')}>
             Bluetooth Sedang {bleOpend ? 'Aktif' : 'Non Aktif'}
           </Text>
         </View>
-        {!bleOpend && <Text style={styles.bluetoothInfo}>Mohon aktifkan bluetooth anda</Text>}
+        {!bleOpend && <Text style={styles.bluetoothInfo}>MOHON AKTIFKAN BLUETOOTH ANDA SEBELUM AKTIFKAN APLIKASI</Text>}
         <Text style={styles.sectionTitle}>Printer yang terhubung ke Aplikasi:</Text>
         {boundAddress.length > 0 && (
           <ItemList
