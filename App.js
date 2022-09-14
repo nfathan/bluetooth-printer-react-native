@@ -244,7 +244,7 @@ const taskRandom = async (taskData) => {
 
 const options = {
   taskName: 'Example',
-  taskTitle: 'ExampleTask title',
+  taskTitle: 'KalaPrinter Running',
   taskDesc: 'ExampleTask desc',
   taskIcon: {
     name: 'ic_launcher',
