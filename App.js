@@ -33,8 +33,6 @@ BackgroundJob.on('expiration', () => {
   console.log('iOS: I am being closed!');
 });
 
-let number = 0
-
 const taskRandom = async (taskData) => {
   let downloadFilesDir = null
   let downloadFilesData = null
@@ -219,7 +217,7 @@ const taskRandom = async (taskData) => {
     // For loop with a delay
     const { delay } = taskData;
     console.log('BG ACTIONS ' + BackgroundJob.isRunning(), delay)
-    for (number; BackgroundJob.isRunning(); number++) {
+    for (let number = 0; BackgroundJob.isRunning(); number++) {
       console.log('Runned -> ', number);
       await BackgroundJob.updateNotification({ taskDesc: 'Runned -> ' + number });
       await sleep(delay);
@@ -278,11 +276,12 @@ const App = () => {
   const [loading, setLoading] = useState(true);
   const [name, setName] = useState('');
   const [boundAddress, setBoundAddress] = useState('');
-  const [fileData, setFileData] = useState({})
+  const [backgroundRunning, setBackgroundRunning] = useState(BackgroundJob.isRunning())
+  // const [fileData, setFileData] = useState({})
   // file list 
-  const [files, setFiles] = useState([]);
+  // const [files, setFiles] = useState([]);
   // file download path
-  const filePath = RNFS.DownloadDirectoryPath + '/kala.json'
+  // const filePath = RNFS.DownloadDirectoryPath + '/kala.json'
   
   // boolean for priter is paired or not 
   let isPrinterBound = false
@@ -293,28 +292,28 @@ const App = () => {
   }
 
   // getting files and folder content (reading directory)
-  const getFileContent = async (path) => {
-    const reader = await RNFS.readDir(path);
-    setFiles(reader);
-  };
+  // const getFileContent = async (path) => {
+  //   const reader = await RNFS.readDir(path);
+  //   setFiles(reader);
+  // };
 
   // procure data from a chosen file (Reading files)
-  const readFile = async (path) => {
-    const response = await RNFS.readFile(path);
-    console.log('ini response dari read file:' + response)
-    setFileData(JSON.parse(response));
-  };
+  // const readFile = async (path) => {
+  //   const response = await RNFS.readFile(path);
+  //   console.log('ini response dari read file:' + response)
+  //   setFileData(JSON.parse(response));
+  // };
 
-  const checkingDownloadFiles = () => {
-    if(files.length > 0) {
-      if(files.some(file => file.name === 'kala.json')) {
-        console.log('file download terbaca')
-        return true
-      }
-      console.log('file download tidak terbaca')
-      return false
-    }
-  }
+  // const checkingDownloadFiles = () => {
+  //   if(files.length > 0) {
+  //     if(files.some(file => file.name === 'kala.json')) {
+  //       console.log('file download terbaca')
+  //       return true
+  //     }
+  //     console.log('file download tidak terbaca')
+  //     return false
+  //   }
+  // }
 
   // const printingDownloadFiles = async () => {
   //   let columnWidths = [4, 6, 20];
@@ -430,28 +429,28 @@ const App = () => {
   //   }
   // }
 
-  const backAction = () => {
-    if(isPrinterBound) {
-      Alert.alert(
-        "Printer sedang terhubung. Jika menutup Aplikasi, Anda tidak bisa melakukan print",  
-        "Apakah Anda Yakin ingin menutup Aplikasi?", 
-      [
-        {
-          text: "Tidak",
-          onPress: () => null,
-          style: "cancel"
-        },
-        { text: "Ya", onPress: () => BackHandler.exitApp() }
-      ]);
-      return true;
-    } else {
-      BackHandler.exitApp()
-      return false
-    }
-  };
-
   useEffect(() => {
-    BackHandler.addEventListener(
+    const backAction = () => {
+      if(isPrinterBound) {
+        Alert.alert(
+          "Printer sedang terhubung. Jika menutup Aplikasi, Anda tidak bisa melakukan print",  
+          "Apakah Anda Yakin ingin menutup Aplikasi?", 
+        [
+          {
+            text: "Tidak",
+            onPress: () => null,
+            style: "cancel"
+          },
+          { text: "Ya", onPress: () => BackHandler.exitApp() }
+        ]);
+        return true;
+      } else {
+        BackHandler.exitApp()
+        return false
+      }
+    };
+
+    const backHandler = BackHandler.addEventListener(
       "hardwareBackPress",
       backAction
     );
@@ -498,19 +497,16 @@ const App = () => {
     }
 
     // getting files and folder content (reading directory)
-    getFileContent(RNFS.DownloadDirectoryPath)
+    // getFileContent(RNFS.DownloadDirectoryPath)
     
     // procure data from a chosen file (Reading files)
-    if(checkingDownloadFiles() ) {
-      readFile(filePath);
-    } else {
-      return
-    }
+    // if(checkingDownloadFiles() ) {
+    //   readFile(filePath);
+    // } else {
+    //   return
+    // }
     
-    BackHandler.removeEventListener(
-      "hardwareBackPress",
-      backAction
-    );
+    return () => backHandler.remove();
 
     // printing if present download files and then deleted it
     // if(boundAddress.length > 0) {
@@ -528,7 +524,7 @@ const App = () => {
     //   }
     // }
 
-  }, [boundAddress, deviceAlreadPaired, deviceFoundEvent, pairedDevices, scan, number,]);
+  }, [boundAddress, deviceAlreadPaired, deviceFoundEvent, pairedDevices, scan, backgroundRunning, ]);
 
   const deviceAlreadPaired = useCallback(
     rsp => {
@@ -770,13 +766,15 @@ const App = () => {
     }
   }, [scanDevices]);
   
+  const handleChangeBackgroundRunning = () => {
+    setBackgroundRunning(BackgroundJob.isRunning())
+  }
 
   /**
    * Toggles the background task
    */
   const toggleBackground = async () => {
     playing = !playing;
-
     if (playing) {
       if(!isPrinterBound) {
         Alert.alert(
@@ -794,6 +792,7 @@ const App = () => {
           console.log('Trying to start background service');
           await BackgroundJob.start(taskRandom, options);
           console.log('Successful start!');
+          handleChangeBackgroundRunning()
         } catch (e) {
           console.log('Error', e);
         }
@@ -801,10 +800,10 @@ const App = () => {
     } else {
       console.log('Stop background service');
       await BackgroundJob.stop();
+      handleChangeBackgroundRunning()
+      // BackHandler.exitApp()
     }
   };
-
-  console.log( 'ini isi file kala json :' + fileData)
 
 
   return (
@@ -868,7 +867,7 @@ const App = () => {
           paddingHorizontal: 10 
         }}>
         {
-          number <= 0 ?
+          !backgroundRunning ?
             <TouchableOpacity
               style={{
                 alignItems: "center",            
