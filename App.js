@@ -50,67 +50,69 @@ const taskRandom = async (taskData) => {
     downloadFilesData = JSON.parse(response)
   }
 
-  const checkingDownloadFiles = () => {
-    // if(downloadFilesDir.length > 0) {
-    //   if(downloadFilesDir.some(file => file.name === 'kala.json')) {
-    //     console.log('file kala json terbaca')
-    //     return true
-    //   }
-    //   console.log('file kala json tidak terbaca')
-    //   return false
-    // }
+  // const checkingDownloadFiles = () => {
+  //   if(downloadFilesDir.length > 0) {
+  //     if(downloadFilesDir.some(file => file.name === 'kala.json')) {
+  //       console.log('file kala json terbaca')
+  //       return true
+  //     }
+  //     console.log('file kala json tidak terbaca')
+  //     return false
+  //   }
+  // }
 
+  const checkingDownloadFiles = () => {
     if(downloadFilesDir && downloadFilesDir.length > 0) {
       // return downloadFilesDir.filter(
       // nameDir => nameDir.name && /\kala(.)*(.json)/g.test(nameDir.name)
       // ).length
       
       const isExistTargetFile = downloadFilesDir.filter(
-      nameDir => nameDir.name && /\kala(.)*(.json)/g.test(nameDir.name)
-      ).length
+        nameDir => nameDir.name && /\kala(.)*(.json)/g.test(nameDir.name)
+        ).length
       
-      console.log('isExist target file', isExistTargetFile)
+        console.log('isExist target file', isExistTargetFile)
+        
+        if (!isExistTargetFile) return false
       
-      if (!isExistTargetFile) return false
+        try {
+          const latestFileKalaDownload = downloadFilesDir &&
+            Array.isArray(downloadFilesDir) &&
+              downloadFilesDir.filter(
+                nameDir => nameDir.name && /\kala(.)*(.json)/g.test(nameDir.name)
+                ).reduce((currLatestFile, currFile) => {
+                  if (!currFile) return currLatestFile
+                  const { name } = currFile
+                  
+                  console.log(name)
+                  const regextTestFile = /^([^\\]*)\(([^\\]*)\)\.(\w+)$/
+                  const matchRegexCurrFile = name.match(regextTestFile)
+                  const matchRegexCurrLatestFile = currLatestFile.match(regextTestFile)
+                  const seqCurrFile = matchRegexCurrFile ? Number(matchRegexCurrFile[2]) : 0
+                  const seqLatestCurrFile = matchRegexCurrLatestFile ? Number(matchRegexCurrLatestFile[2]) : 0
+                  if (seqCurrFile > seqLatestCurrFile) return name
+                  return currLatestFile
+                }, '/kala.json')
+
+            if (latestFileKalaDownload !== '/kala.json' && latestFileKalaDownload) {
+              downloadFilesPath = RNFS.DownloadDirectoryPath + '/' + latestFileKalaDownload
+            }
+          
+          return true
+        } catch(e) {
+          console.log(e)
+          return false
+        }
       
-      try {
-      const latestFileKalaDownload = downloadFilesDir &&
-      Array.isArray(downloadFilesDir) &&
-      downloadFilesDir.filter(
-      nameDir => nameDir.name && /\kala(.)*(.json)/g.test(nameDir.name)
-      ).reduce((currLatestFile, currFile) => {
-      if (!currFile) return currLatestFile
-      const { name } = currFile
-      
-      console.log(name)
-      const regextTestFile = /^([^\\]*)\(([^\\]*)\)\.(\w+)$/
-      const matchRegexCurrFile = name.match(regextTestFile)
-      const matchRegexCurrLatestFile = currLatestFile.match(regextTestFile)
-      const seqCurrFile = matchRegexCurrFile ? Number(matchRegexCurrFile[2]) : 0
-      const seqLatestCurrFile = matchRegexCurrLatestFile ? Number(matchRegexCurrLatestFile[2]) : 0
-      if (seqCurrFile > seqLatestCurrFile) return name
-      return currLatestFile
-      }, '/kala.json')
-      if (latestFileKalaDownload !== '/kala.json' && latestFileKalaDownload) {
-      downloadFilesPath = RNFS.DownloadDirectoryPath + '/' + latestFileKalaDownload
-      }
-      
-      return true
-      }
-      
-      catch(e) {
-      console.log(e)
-      
-      return false
-      }
-      
-      // if(downloadFilesDir.some(file => file.name === 'kala.json')) {
-      // console.log('file kala json terbaca')
+        // if(downloadFilesDir.some(file => file.name === 'kala.json')) {
+        // console.log('file kala json terbaca')
+        // return true
+        // }
+        // console.log('file kala json tidak terbaca')
       // return true
-      // }
-      // console.log('file kala json tidak terbaca')
-      return true
-      }
+    }
+    
+    return false
   }
 
   const printingDownloadFiles = async () => {
