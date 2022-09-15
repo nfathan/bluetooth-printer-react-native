@@ -69,25 +69,25 @@ const taskRandom = async (taskData) => {
       await BluetoothEscposPrinter.printColumn(
         [32],
         [BluetoothEscposPrinter.ALIGN.CENTER],
-        [`${downloadFilesData.company_name}` || 'nama company masih ghoib'],
+        [`${downloadFilesData.company_name || '-'}`],
         {},
       );
       await BluetoothEscposPrinter.printColumn(
         [32],
         [BluetoothEscposPrinter.ALIGN.CENTER],
-        [`${downloadFilesData.company_address}` || 'alamat company masih ghoib'],
+        [`${downloadFilesData.company_address || '-'}`],
         {},
       );
       await BluetoothEscposPrinter.printColumn(
         [32],
         [BluetoothEscposPrinter.ALIGN.LEFT],
-        [`NO: ${downloadFilesData.purchase_invoice_no || downloadFilesData.sales_invoice_no}`],
+        [`NO: ${downloadFilesData.transaction_number }`],
         {},
       );
       await BluetoothEscposPrinter.printColumn(
         [32],
         [BluetoothEscposPrinter.ALIGN.LEFT],
-        [`TANGGAL: ${formatHelp.getReadableDateV2(downloadFilesData.transaction_date)}`],
+        [`TANGGAL: ${downloadFilesData.transaction_date}`],
         {},
       );
       await BluetoothEscposPrinter.printColumn(
@@ -122,8 +122,37 @@ const taskRandom = async (taskData) => {
 
       await BluetoothEscposPrinter.printText('\r\n', {});
 
-      downloadFilesData.product.map( async (productItem) => {
+      // downloadFilesData.product.map( async (productItem) => {
+      //   // await  BluetoothEscposPrinter.printText(`${productItem.product_name}\r\n`,{})
+      //   await BluetoothEscposPrinter.printColumn(
+      //     columnWidths,
+      //     [
+      //       BluetoothEscposPrinter.ALIGN.LEFT,
+      //       BluetoothEscposPrinter.ALIGN.RIGHT,
+      //     ],
+      //     [
+      //       `${productItem.quantity} ${productItem.unit} x ${formatHelp.currencyFormatWithRegex(productItem.price, 0)}`, 
+      //       `${formatHelp.currencyFormatWithRegex( (Number(productItem.quantity) * Number(productItem.price)), 0 )}`,
+      //     ],
+      //     {},
+      //   )
+      // })
+
+      for (let productItem of downloadFilesData.products) {
+        console.log('nama produkct jhjj :'+productItem)
         // await  BluetoothEscposPrinter.printText(`${productItem.product_name}\r\n`,{})
+        await BluetoothEscposPrinter.printColumn(
+          [21, 11],
+          [
+            BluetoothEscposPrinter.ALIGN.LEFT,
+            BluetoothEscposPrinter.ALIGN.LEFT,
+          ],
+          [
+            `${productItem.product_name}`,
+            ''
+          ],
+          {},
+        )
         await BluetoothEscposPrinter.printColumn(
           columnWidths,
           [
@@ -131,12 +160,12 @@ const taskRandom = async (taskData) => {
             BluetoothEscposPrinter.ALIGN.RIGHT,
           ],
           [
-            `${productItem.quantity} ${productItem.unit} x ${formatHelp.currencyFormatWithRegex(productItem.price, 0)}`, 
-            `${formatHelp.currencyFormatWithRegex( (Number(productItem.quantity) * Number(productItem.price)), 0 )}`,
+            ` ${productItem.product_quantity} ${productItem.product_unit} x ${productItem.product_price}`, 
+            `${productItem.product_amount}`,
           ],
           {},
         )
-      })
+      }
 
       await BluetoothEscposPrinter.printText(
         '------------------------------',
@@ -153,7 +182,7 @@ const taskRandom = async (taskData) => {
         ],
         [
           `TOTAL`,
-          `${formatHelp.currencyFormatWithRegex(Number(downloadFilesData.amount), 0)}`
+          `${downloadFilesData.amount}`
         ],
         {},
       );
@@ -165,7 +194,7 @@ const taskRandom = async (taskData) => {
         ],
         [
           `DIBAYAR`,
-          `${formatHelp.currencyFormatWithRegex(downloadFilesData.paid, 0)}`
+          `${formatHelp.currencyFormatWithRegex(Number(downloadFilesData.paid), 0)}`
         ],
         {},
       );
@@ -178,7 +207,7 @@ const taskRandom = async (taskData) => {
         ],
         [
           `KEMBALIAN`,
-          ` ${formatHelp.currencyFormatWithRegex(downloadFilesData.change_money, 0)}`
+          ` ${formatHelp.currencyFormatWithRegex(Number(downloadFilesData.change_money), 0)}`
         ],
         {},
       );
