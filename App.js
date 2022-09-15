@@ -23,7 +23,6 @@ import { styles } from './styles';
 import RNFS from 'react-native-fs';
 
 import { BluetoothEscposPrinter } from 'react-native-bluetooth-escpos-printer';
-// import { hsdLogo } from './dummy-logo';
 
 import BackgroundJob from 'react-native-background-actions';
 
@@ -36,80 +35,73 @@ BackgroundJob.on('expiration', () => {
 });
 
 const taskRandom = async (taskData) => {
+  const targetFilenameDownload = 'kala.json'
+
   let downloadFilesDir = null
   let downloadFilesData = null
-  const downloadFilesPath = RNFS.DownloadDirectoryPath + '/kala.json'
+  let downloadFilesPath = RNFS.DownloadDirectoryPath + '/' + targetFilenameDownload
 
-  const getDownloadFilesDir = async (path) => {
-    const reader = await RNFS.readDir(path);
-    downloadFilesDir = reader
+  const getDownloadFilesDir = async (pathDownloadDirectory) => {
+    try {
+      const reader = await RNFS.readDir(pathDownloadDirectory);
+      downloadFilesDir = reader
+    }
+
+    catch(e) {
+      console.log('cannot read directory', e)
+    }
   }
 
-  const readDownloadFilesData = async (path) => {
-    const response = await RNFS.readFile(path);
-    downloadFilesData = JSON.parse(response)
-  }
+  const readDownloadFilesData = async () => {
+    try {
+      const response = await RNFS.readFile(downloadFilesPath);
+      downloadFilesData = JSON.parse(response)
+    }
 
-  // const checkingDownloadFiles = () => {
-  //   if(downloadFilesDir.length > 0) {
-  //     if(downloadFilesDir.some(file => file.name === 'kala.json')) {
-  //       console.log('file kala json terbaca')
-  //       return true
-  //     }
-  //     console.log('file kala json tidak terbaca')
-  //     return false
-  //   }
-  // }
+    catch(e) {
+      console.log('not found file', e)
+    }
+  }
 
   const checkingDownloadFiles = () => {
     if(downloadFilesDir && downloadFilesDir.length > 0) {
-      // return downloadFilesDir.filter(
-      // nameDir => nameDir.name && /\kala(.)*(.json)/g.test(nameDir.name)
-      // ).length
-      
-      const isExistTargetFile = downloadFilesDir.filter(
+      // removing undesire file
+      const targetFiles = downloadFilesDir.filter(
         nameDir => nameDir.name && /\kala(.)*(.json)/g.test(nameDir.name)
-        ).length
-      
-        console.log('isExist target file', isExistTargetFile)
-        
-        if (!isExistTargetFile) return false
-      
-        try {
-          const latestFileKalaDownload = downloadFilesDir &&
-            Array.isArray(downloadFilesDir) &&
-              downloadFilesDir.filter(
-                nameDir => nameDir.name && /\kala(.)*(.json)/g.test(nameDir.name)
-                ).reduce((currLatestFile, currFile) => {
-                  if (!currFile) return currLatestFile
-                  const { name } = currFile
-                  
-                  console.log(name)
-                  const regextTestFile = /^([^\\]*)\(([^\\]*)\)\.(\w+)$/
-                  const matchRegexCurrFile = name.match(regextTestFile)
-                  const matchRegexCurrLatestFile = currLatestFile.match(regextTestFile)
-                  const seqCurrFile = matchRegexCurrFile ? Number(matchRegexCurrFile[2]) : 0
-                  const seqLatestCurrFile = matchRegexCurrLatestFile ? Number(matchRegexCurrLatestFile[2]) : 0
-                  if (seqCurrFile > seqLatestCurrFile) return name
-                  return currLatestFile
-                }, '/kala.json')
+      )
 
-            if (latestFileKalaDownload !== '/kala.json' && latestFileKalaDownload) {
-              downloadFilesPath = RNFS.DownloadDirectoryPath + '/' + latestFileKalaDownload
-            }
-          
-          return true
-        } catch(e) {
-          console.log(e)
-          return false
-        }
+      const isExistTargetFile = targetFiles.length
       
-        // if(downloadFilesDir.some(file => file.name === 'kala.json')) {
-        // console.log('file kala json terbaca')
-        // return true
-        // }
-        // console.log('file kala json tidak terbaca')
-      // return true
+      if (!isExistTargetFile) return false
+    
+      try {
+        const latestFileKalaDownload = targetFiles &&
+          Array.isArray(targetFiles) &&
+            downloadFilesDir.reduce((currLatestFile, currFile) => {
+              if (!currFile) return currLatestFile
+              const { name } = currFile
+              
+              const regextTestFile = /^([^\\]*)\(([^\\]*)\)\.(\w+)$/
+              const matchRegexCurrFile = name.match(regextTestFile)
+              const matchRegexCurrLatestFile = currLatestFile.match(regextTestFile)
+
+              const seqCurrFile = matchRegexCurrFile ? Number(matchRegexCurrFile[2]) : 0
+              const seqLatestCurrFile = matchRegexCurrLatestFile ? Number(matchRegexCurrLatestFile[2]) : 0
+
+              if (seqCurrFile > seqLatestCurrFile) return name
+              return currLatestFile
+            }, targetFilenameDownload)
+
+          if (latestFileKalaDownload) {
+            downloadFilesPath = RNFS.DownloadDirectoryPath + '/' + latestFileKalaDownload
+          }
+        
+        return true
+      } catch(e) {
+        console.log('cannot found target filename: ', e)
+
+        return false
+      }
     }
     
     return false
@@ -281,10 +273,21 @@ const taskRandom = async (taskData) => {
   
   const deleteDownloadFiles = async (path) => {
     try {
-      //delete the item present at 'path'
-      await RNFS.unlink(path); 
-    } catch (error) {
-      console.log(error);
+      const allTargetFiles = Array.isArray(downloadFilesDir) &&
+                      downloadFilesDir.filter(
+                        nameDir => nameDir.name && /\kala(.)*(.json)/g.test(nameDir.name)
+                      )
+      
+      if (allTargetFiles.length) {
+        for (let targetFile of allTargetFiles) {
+          const { name } = targetFile
+          
+          await RNFS.unlink(RNFS.DownloadDirectoryPath + '/' + name)
+        }
+      }
+
+    } catch (e) {
+      console.log('cannot delete files or not found files: ', e);
     }
   }
 
