@@ -292,7 +292,7 @@ const taskRandom = async (taskData) => {
     console.log('BG ACTIONS ' + BackgroundJob.isRunning(), delay)
     for (let number = 0; BackgroundJob.isRunning(); number++) {
       console.log('Runned -> ', number);
-      await BackgroundJob.updateNotification({ taskDesc: 'Runned -> ' + number });
+      await BackgroundJob.updateNotification({ taskDesc: 'Printer sedang terkoneksi dan berjalan..'});
       await sleep(delay);
 
       await getDownloadFilesDir(RNFS.DownloadDirectoryPath)
