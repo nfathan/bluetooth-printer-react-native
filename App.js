@@ -116,7 +116,9 @@ const taskRandom = async (taskData) => {
         [32],
         [BluetoothEscposPrinter.ALIGN.CENTER],
         [`${downloadFilesData.company_name || '-'}`],
-        {},
+        {
+          heigthtimes: 1.5,
+        },
       );
       await BluetoothEscposPrinter.printColumn(
         [32],
@@ -124,6 +126,9 @@ const taskRandom = async (taskData) => {
         [`${downloadFilesData.company_address || '-'}`],
         {},
       );
+
+      await BluetoothEscposPrinter.printText('\r\n', {});
+
       await BluetoothEscposPrinter.printColumn(
         [32],
         [BluetoothEscposPrinter.ALIGN.LEFT],
@@ -143,7 +148,7 @@ const taskRandom = async (taskData) => {
         {},
       );
       await BluetoothEscposPrinter.printText(
-        '------------------------------',
+        '--------------------------------',
         {},
       );
 
@@ -162,33 +167,16 @@ const taskRandom = async (taskData) => {
         {},
       );
       await BluetoothEscposPrinter.printText(
-        '------------------------------',
+        '--------------------------------',
         {},
       );
 
       await BluetoothEscposPrinter.printText('\r\n', {});
 
-      // downloadFilesData.product.map( async (productItem) => {
-      //   // await  BluetoothEscposPrinter.printText(`${productItem.product_name}\r\n`,{})
-      //   await BluetoothEscposPrinter.printColumn(
-      //     columnWidths,
-      //     [
-      //       BluetoothEscposPrinter.ALIGN.LEFT,
-      //       BluetoothEscposPrinter.ALIGN.RIGHT,
-      //     ],
-      //     [
-      //       `${productItem.quantity} ${productItem.unit} x ${formatHelp.currencyFormatWithRegex(productItem.price, 0)}`, 
-      //       `${formatHelp.currencyFormatWithRegex( (Number(productItem.quantity) * Number(productItem.price)), 0 )}`,
-      //     ],
-      //     {},
-      //   )
-      // })
-
       for (let productItem of downloadFilesData.products) {
         console.log('nama produkct jhjj :'+productItem)
-        // await  BluetoothEscposPrinter.printText(`${productItem.product_name}\r\n`,{})
         await BluetoothEscposPrinter.printColumn(
-          [21, 11],
+          [23, 9],
           [
             BluetoothEscposPrinter.ALIGN.LEFT,
             BluetoothEscposPrinter.ALIGN.LEFT,
@@ -214,7 +202,7 @@ const taskRandom = async (taskData) => {
       }
 
       await BluetoothEscposPrinter.printText(
-        '------------------------------',
+        '--------------------------------',
         {},
       );
       
