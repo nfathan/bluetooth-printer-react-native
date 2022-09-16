@@ -39,7 +39,7 @@ const styles = StyleSheet.create({
     backgroundColor: color,
     paddingHorizontal: 10,
     paddingVertical: 8,
-    borderRadius: 6,
+    borderRadius: 10,
   }),
   actionText: { color: 'white' },
 });

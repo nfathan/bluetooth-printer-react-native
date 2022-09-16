@@ -3,15 +3,18 @@ import { StyleSheet } from 'react-native';
 export const styles = StyleSheet.create({
   container: {
     flex: 1,
-    paddingTop: 40,
+    paddingTop: 25,
     paddingHorizontal: 20,
   },
   containerList: { flex: 1, flexDirection: 'column' },
   bluetoothStatusContainer: { justifyContent: 'flex-end', alignSelf: 'flex-end' },
   bluetoothStatus: color => ({
     backgroundColor: color,
-    padding: 8,
-    borderRadius: 16,
+    padding: 15,
+    borderBottomLeftRadius: 15,
+    borderBottomRightRadius: 0,
+    borderTopLeftRadius: 15,
+    borderTopRightRadius: 15,
     color: 'white',
     paddingHorizontal: 14,
     marginBottom: 20,

@@ -698,7 +698,6 @@ const App = () => {
           fileData={fileData} 
           checkingDownloadFiles={checkingDownloadFiles()}
         /> */}
-        {/* <Text>Downloads folder : {downloadsFolder} </Text> */}
         {!usingHermes ? null : (
           <View style={{
             position: 'absolute',
@@ -722,7 +721,7 @@ const App = () => {
                 alignItems: "center",            
                 backgroundColor: "#00BCD4",
                 padding: 20,
-                borderRadius: 10,
+                borderRadius: 15,
               }}
               onPress={toggleBackground}>
                 <Text 
@@ -730,6 +729,7 @@ const App = () => {
                     color: 'white',
                     textAlign: 'center',
                     fontSize: 17, 
+                    fontWeight: 'bold',
                   }}>
                     TEKAN DISINI UNTUK AKTIFKAN APLIKASI
                 </Text>
@@ -740,7 +740,7 @@ const App = () => {
                 alignItems: "center",            
                 backgroundColor: "#E9493F",
                 padding: 20,
-                borderRadius: 10,
+                borderRadius: 15,
               }}
               onPress={toggleBackground}>
                 <Text 
@@ -748,6 +748,7 @@ const App = () => {
                     color: 'white',
                     textAlign: 'center',
                     fontSize: 17, 
+                    fontWeight: 'bold',
                   }}>
                     TEKAN DISINI UNTUK HENTIKAN APLIKASI
                 </Text>
