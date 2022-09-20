@@ -228,7 +228,7 @@ const taskRandom = async (taskData) => {
         ],
         [
           `DIBAYAR`,
-          `${formatHelp.currencyFormatWithRegex(Number(downloadFilesData.paid), 0)}`
+          `${downloadFilesData.paid}`
         ],
         {},
       );
@@ -241,7 +241,7 @@ const taskRandom = async (taskData) => {
         ],
         [
           `KEMBALIAN`,
-          ` ${formatHelp.currencyFormatWithRegex(Number(downloadFilesData.change_money), 0)}`
+          ` ${downloadFilesData.change_money}`
         ],
         {},
       );
@@ -249,7 +249,7 @@ const taskRandom = async (taskData) => {
       await BluetoothEscposPrinter.printText('\r\n', {});
       
       await BluetoothEscposPrinter.printText(
-        '---------- Lunas ----------',
+        downloadFilesData.status === 'paid' ? '---------- Lunas ----------' : '---------- Tagihan ----------',
         {},
       );
       
